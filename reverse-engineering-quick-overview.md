@@ -138,7 +138,7 @@ payload = b'A'*offset + p64(0xAddress)
 
 ## About the Author
 
-This guide was created by Fred P3D, a cybersecurity enthusiast and CTF player. You can find more of my work and connect with me through these platforms:
+This guide was created by Frederick Pellerin, a cybersecurity enthusiast and CTF player. You can find more of my work and connect with me through these platforms:
 
 - **Website**: [https://therealfred.ca](https://therealfred.ca)
 - **Twitter**: [https://twitter.com/TheRealFredP3D](https://twitter.com/TheRealFredP3D)

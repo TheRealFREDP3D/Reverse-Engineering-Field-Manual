@@ -24,7 +24,7 @@ This repository contains educational materials for learning reverse engineering 
 
 1. Clone this repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/TheRealFREDP3D/Reverse-Engineering-Field-Manual
    ```
 
 2. Explore the markdown guides for theoretical concepts:

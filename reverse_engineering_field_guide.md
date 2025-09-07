@@ -2063,7 +2063,7 @@ if __name__ == "__main__":
 
 ### Contributing
 
-This guide is open source and contributions are welcome! If you find errors, have suggestions for improvements, or want to add new sections:
+This guide is open source, and contributions are welcome! If you find errors, have suggestions for improvements, or want to add new sections:
 
 1. Fork the repository
 2. Create a feature branch
@@ -2093,5 +2093,5 @@ Good luck on your reverse engineering journey!
 
 ---
 
-*Last updated: {datetime.now().strftime('%Y-%m-%d')}*
+*Last updated: 2025-09-07*
 *Version: 1.0*

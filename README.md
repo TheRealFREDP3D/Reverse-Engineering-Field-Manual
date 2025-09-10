@@ -49,7 +49,7 @@ The materials in this repository cover:
 
 1. **Beginner**: Start with the quick overview and basic exploit examples
 2. **Intermediate**: Study the field guide and practice with more complex scenarios
-3. **Advanced**: Create your own exploits and contribute back to the community
+3. **Advanced**: Dive into the [detailed field guide](reverse_engineering_field_guide.md), create your own exploits, and contribute back to the community
 
 ## 🤝 Contributing
 

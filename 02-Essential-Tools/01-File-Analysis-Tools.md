@@ -10,7 +10,7 @@ file binary_name
 ### `strings` Command
 **Purpose**: Extract printable strings from binaries
 ```bash
-strings binary_name | grep -i "flag\|pass\|secret"
+strings binary_name | grep -i -E "flag|pass|secret"
 ```
 
 ### `hexdump` / `xxd`

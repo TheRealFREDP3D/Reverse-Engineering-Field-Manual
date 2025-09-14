@@ -32,6 +32,8 @@ class CTFProject:
         if self.binary_path.exists():
             import shutil
             shutil.copy2(self.binary_path, self.project_dir / 'binaries')
+        else:
+            raise FileNotFoundError(f"Binary file not found: {self.binary_path}. Please ensure the binary exists before running the setup.")
 
         # Create initial files
         self.create_initial_files()

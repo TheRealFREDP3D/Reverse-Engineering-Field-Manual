@@ -36,6 +36,6 @@ gcc -m64 -fno-stack-protector -z execstack -no-pie -o vulnerable vulnerable.c
 ```
 
 - **`-fno-stack-protector`**: Disables stack canaries, which are designed to detect stack buffer overflows.
-- **`-z execstack`**: Makes the stack executable. This is necessary for shellcode injection but is good practice to include even for ROP.
+- **`-z execstack`**: Makes the stack executable. This is necessary for shellcode injection but is generally disabled by modern security practices.
 - **`-no-pie`**: Disables Position-Independent Executable. This ensures the binary's code is loaded at a fixed address, making it easier to predict function and gadget addresses without needing an information leak.
 - **`-m64`**: Explicitly compile for a 64-bit architecture.
